@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex">
+<title></title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='5' fill='%23eaffd0'/%3E%3C/svg%3E">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: #000; }
+  body {
+    background: #000;
+    height: 100vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior-y: none;
+  }
+  body::-webkit-scrollbar { display: none; }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 1px; width: 0%;
+    background: rgba(255,255,255,.55); z-index: 40;
+    transition: width .18s ease-out; pointer-events: none;
+  }
+
+  .dots {
+    position: fixed; right: max(18px, 2.4vw); top: 50%;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 14px; z-index: 40;
+  }
+  .dots button {
+    width: 7px; height: 7px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.38); background: transparent;
+    padding: 0; cursor: pointer;
+    transition: background .5s ease, transform .5s ease, border-color .5s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .dots button:hover { transform: scale(1.35); border-color: rgba(255,255,255,.85); }
+  .dots button.on {
+    background: rgba(255,255,255,.92); border-color: rgba(255,255,255,.92);
+    transform: scale(1.25);
+  }
+
+  .scene {
+    position: relative;
+    height: 100vh; height: 100svh;
+    scroll-snap-align: start; scroll-snap-stop: always;
+    display: grid; place-items: center;
+    background: #000; overflow: hidden;
+  }
+  .scene video {
+    display: block; width: auto; height: auto;
+    max-width: 92vmin; max-height: 86vh; max-height: 86svh;
+    border-radius: 2px;
+    opacity: .1; transform: scale(.965);
+    transition: opacity 1.4s cubic-bezier(.22,.61,.36,1),
+                transform 1.6s cubic-bezier(.22,.61,.36,1),
+                filter 1.4s ease;
+    filter: brightness(.92) contrast(1.02) saturate(1.05);
+    background: #000; cursor: zoom-in;
+    will-change: transform, opacity;
+  }
+  .scene.on video { opacity: 1; transform: scale(1); filter: brightness(1.04) contrast(1.05) saturate(1.1); }
+  .scene video:hover { transform: scale(1.022); filter: brightness(1.1) contrast(1.06) saturate(1.12); }
+  .scene::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(120% 90% at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,.5) 100%),
+      linear-gradient(to bottom, rgba(0,0,0,.45), rgba(0,0,0,0) 18%, rgba(0,0,0,0) 82%, rgba(0,0,0,.45));
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 1.6vmin;
+    width: min(90vmin, 92vw);
+    height: min(90vmin, 88svh);
+  }
+  .grid img {
+    width: 100%; height: 100%; object-fit: cover;
+    border-radius: 2px; cursor: zoom-in;
+    opacity: .18; transform: scale(.97);
+    transition: opacity 1.2s ease, transform 1.2s ease, filter 1.2s ease, box-shadow 1.2s ease;
+    filter: brightness(.95) saturate(1.05);
+  }
+  .scene.on .grid img { opacity: 1; transform: scale(1); }
+  .grid img:hover { transform: scale(1.035); filter: brightness(1.12) saturate(1.15); box-shadow: 0 0 60px rgba(255,255,255,.12); }
+
+  .lens {
+    position: fixed; left: 0; top: 0; width: 300px; height: 300px; border-radius: 50%;
+    overflow: hidden; pointer-events: none; z-index: 60; opacity: 0;
+    transition: opacity .22s ease;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.4),
+                0 14px 60px rgba(0,0,0,.8),
+                0 0 70px rgba(255,255,255,.10);
+    background: #000; will-change: transform;
+  }
+  .lens.on { opacity: 1; }
+  .lens canvas { width: 100%; height: 100%; display: block; }
+
+  video:fullscreen, img:fullscreen {
+    max-width: none; max-height: none; width: 100vw; height: 100vh;
+    object-fit: contain; transform: none; filter: none; border-radius: 0;
+    background: #000; cursor: zoom-out;
+  }
+  @media (max-width: 760px) {
+    .scene video { max-width: 96vmin; max-height: 78svh; }
+    .grid { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); width: 94vw; height: 82svh; }
+    .dots { right: 12px; gap: 12px; }
+    .lens { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<nav class="dots" id="dots" aria-label=""></nav>
+<div class="lens" id="lens"><canvas id="lensCanvas" width="600" height="600"></canvas></div>
+
+<main id="gallery">
+  <section class="scene">
+    <video class="zoomable" src="assets/brain-bw.mp4" poster="assets/brain-bw.jpg" muted loop playsinline preload="auto" aria-label=""></video>
+  </section>
+  <section class="scene">
+    <video class="zoomable" src="assets/abstraction.mp4" poster="assets/abstraction.jpg" muted loop playsinline preload="metadata" aria-label=""></video>
+  </section>
+  <section class="scene">
+    <video class="zoomable" src="assets/brain-galaxy.mp4" poster="assets/brain-galaxy.jpg" muted loop playsinline preload="metadata" aria-label=""></video>
+  </section>
+  <section class="scene">
+    <video class="zoomable" src="assets/brain-green.mp4" poster="assets/brain-green.jpg" muted loop playsinline preload="metadata" aria-label=""></video>
+  </section>
+  <section class="scene">
+    <video class="zoomable" src="assets/neon-a.mp4" poster="assets/neon-a.jpg" muted loop playsinline preload="metadata" aria-label=""></video>
+  </section>
+  <section class="scene">
+    <video class="zoomable" src="assets/neon-b.mp4" poster="assets/neon-b.jpg" muted loop playsinline preload="metadata" aria-label=""></video>
+  </section>
+  <section class="scene">
+    <video class="zoomable" src="assets/blender.mp4" poster="assets/blender.jpg" muted loop playsinline preload="metadata" aria-label=""></video>
+  </section>
+  <section class="scene">
+    <video class="zoomable" src="assets/universe.mp4" poster="assets/universe.jpg" muted loop playsinline preload="metadata" aria-label=""></video>
+  </section>
+  <section class="scene">
+    <div class="grid">
+      <img class="zoomable" src="assets/still-01-blue.jpg" alt="" loading="lazy">
+      <img class="zoomable" src="assets/still-02-green.jpg" alt="" loading="lazy">
+      <img class="zoomable" src="assets/still-03-violet.jpg" alt="" loading="lazy">
+      <img class="zoomable" src="assets/still-04-gold.jpg" alt="" loading="lazy">
+      <img class="zoomable" src="assets/still-05-cyan.jpg" alt="" loading="lazy">
+      <img class="zoomable" src="assets/still-06-blue.jpg" alt="" loading="lazy">
+      <img class="zoomable" src="assets/cellmusic-app-square.jpg" alt="" loading="lazy">
+      <img class="zoomable" src="assets/cellmusic-heatmap.jpg" alt="" loading="lazy">
+      <img class="zoomable" src="assets/cellmusic-cells.jpg" alt="" loading="lazy">
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var scenes = Array.prototype.slice.call(document.querySelectorAll('.scene'));
+  var videos = Array.prototype.slice.call(document.querySelectorAll('.scene video'));
+  var dots = document.getElementById('dots');
+  var progress = document.getElementById('progress');
+
+  scenes.forEach(function (s) {
+    var b = document.createElement('button');
+    b.setAttribute('aria-label', '');
+    b.addEventListener('click', function () { s.scrollIntoView({ behavior: 'smooth' }); });
+    dots.appendChild(b);
+  });
+  var buttons = Array.prototype.slice.call(dots.children);
+
+  function activate(i) {
+    scenes.forEach(function (s, k) { s.classList.toggle('on', k === i); });
+    buttons.forEach(function (b, k) { b.classList.toggle('on', k === i); });
+    videos.forEach(function (v, k) {
+      if (k === i) {
+        v.preload = 'auto';
+        var p = v.play();
+        if (p && p.catch) { p.catch(function () {}); }
+      } else {
+        v.pause();
+      }
+    });
+  }
+
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting && e.intersectionRatio > 0.55) {
+        activate(scenes.indexOf(e.target));
+      }
+    });
+  }, { threshold: [0, 0.55, 1] });
+  scenes.forEach(function (s) { io.observe(s); });
+
+  function goFullscreen(el) {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else if (el.requestFullscreen) {
+      el.requestFullscreen();
+    } else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen();
+    } else if (el.webkitEnterFullscreen) {
+      el.webkitEnterFullscreen();
+    }
+  }
+  videos.forEach(function (v) {
+    v.addEventListener('click', function () { goFullscreen(v); });
+    v.addEventListener('dblclick', function (e) { e.preventDefault(); });
+  });
+  document.querySelectorAll('.grid img').forEach(function (img) {
+    img.addEventListener('click', function () { goFullscreen(img); });
+  });
+
+  /* ---- loupe ---- */
+  var lens = document.getElementById('lens');
+  var canvas = document.getElementById('lensCanvas');
+  var ctx = canvas.getContext('2d');
+  var ZOOM = 2.8;
+  var lensSize = 300;
+
+  function drawLens(media, e, rect) {
+    var x = (e.clientX - rect.left) / rect.width;
+    var y = (e.clientY - rect.top) / rect.height;
+    if (x < 0 || x > 1 || y < 0 || y > 1) { lens.classList.remove('on'); return; }
+    var vw = media.videoWidth || media.naturalWidth;
+    var vh = media.videoHeight || media.naturalHeight;
+    if (!vw || !vh) return;
+    var sw = vw / ZOOM, sh = vh / ZOOM;
+    var sx = Math.min(Math.max(x * vw - sw / 2, 0), vw - sw);
+    var sy = Math.min(Math.max(y * vh - sh / 2, 0), vh - sh);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(media, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    var lx = Math.min(Math.max(e.clientX - lensSize / 2, 10), window.innerWidth - lensSize - 10);
+    var ly = Math.min(Math.max(e.clientY - lensSize / 2, 10), window.innerHeight - lensSize - 10);
+    lens.style.transform = 'translate(' + lx + 'px,' + ly + 'px)';
+    lens.classList.add('on');
+  }
+
+  document.querySelectorAll('.zoomable').forEach(function (media) {
+    var raf = 0;
+    media.addEventListener('mousemove', function (e) {
+      var rect = media.getBoundingClientRect();
+      if (raf) { return; }
+      raf = requestAnimationFrame(function () {
+        raf = 0;
+        drawLens(media, e, rect);
+      });
+    });
+    media.addEventListener('mouseleave', function () { lens.classList.remove('on'); });
+  });
+  window.addEventListener('scroll', function () { lens.classList.remove('on'); }, { passive: true });
+
+  function onScroll() {
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    var t = max > 0 ? (window.scrollY / max) : 0;
+    progress.style.width = (t * 100).toFixed(2) + '%';
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  onScroll();
+
+  window.addEventListener('keydown', function (e) {
+    var i = scenes.findIndex(function (s) { return s.classList.contains('on'); });
+    if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+      e.preventDefault();
+      scenes[Math.min(scenes.length - 1, i + 1)].scrollIntoView({ behavior: 'smooth' });
+    } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+      e.preventDefault();
+      scenes[Math.max(0, i - 1)].scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+
+  activate(0);
+})();
+</script>
+</body>
+</html>
